@@ -164,6 +164,32 @@ func NewBucketWithQuantumAndClock(fillInterval time.Duration, capacity, quantum 
 	}
 }
 
+// NewBucketWithQuantumAsAvailable is like NewBucketWithQuantum but the initial available token
+// is equal to the refill quantum
+func NewBucketWithQuantumAsAvailable(fillInterval time.Duration, capacity, quantum int64, clock Clock) *Bucket {
+	if clock == nil {
+		clock = realClock{}
+	}
+	if fillInterval <= 0 {
+		panic("token bucket fill interval is not > 0")
+	}
+	if capacity <= 0 {
+		panic("token bucket capacity is not > 0")
+	}
+	if quantum <= 0 {
+		panic("token bucket quantum is not > 0")
+	}
+	return &Bucket{
+		clock:           clock,
+		startTime:       clock.Now(),
+		latestTick:      0,
+		fillInterval:    fillInterval,
+		capacity:        capacity,
+		quantum:         quantum,
+		availableTokens: quantum,
+	}
+}
+
 // Wait takes count tokens from the bucket, waiting until they are
 // available.
 func (tb *Bucket) Wait(count int64) {
